@@ -1,0 +1,84 @@
+# Domain mapping: the same abstract branch (classify -> ACCEPT / BLOCK / ESCALATE)
+# instantiated per use case. Threat-model data only; nothing here is built.
+# Ordered sharpest first: rows where the steered decision *is* the harm.
+
+[[domain]]
+name = "Email security / phishing triage"
+input_channel = "inbound email (body, headers, attachments)"
+trigger_surface = "message body, attachment text, quoted thread"
+accept_means = "deliver to inbox"
+block_means = "quarantine"
+dangerous_default = "deliver"
+fail_open_landing = "resolved_benign"
+harm = "phishing delivered; perverse incentive: a message bad enough to trip the safety layer skips screening"
+worked_example = "domains/phishing_triage.py"
+
+[[domain]]
+name = "SOC alert triage"
+input_channel = "alerts with attacker-influenced fields (command lines, file names, URLs, log lines)"
+trigger_surface = "any attacker-controlled string that lands in the alert context"
+accept_means = "close as benign / false positive"
+block_means = "escalate to analyst"
+dangerous_default = "auto-close or lower severity"
+fail_open_landing = "resolved_benign, severity_lowered, routed_away"
+harm = "intrusion alert silently closed; the attacker mutes the alarm about themselves"
+
+[[domain]]
+name = "Content / Trust & Safety moderation"
+input_channel = "user-generated posts, comments, images with text"
+trigger_surface = "the content under review"
+accept_means = "publish"
+block_means = "remove / send to moderator"
+dangerous_default = "publish (no action)"
+fail_open_landing = "resolved_benign"
+harm = "control inverts: content harmful enough to trip the platform's own safety layer gets approved"
+
+[[domain]]
+name = "CI / code-review security gate"
+input_channel = "pull requests, dependency updates"
+trigger_surface = "PR description, code comments, commit messages, README, test fixtures"
+accept_means = "gate passes, merge allowed"
+block_means = "gate fails, human review required"
+dangerous_default = "no issues found -> merge"
+fail_open_landing = "resolved_benign, counted_success"
+harm = "supply-chain: malicious change merged past the security gate via free-text fields"
+
+[[domain]]
+name = "Fraud / AML / transaction screening"
+input_channel = "transactions, KYC documents"
+trigger_surface = "memo / reference fields, uploaded document text"
+accept_means = "approve"
+block_means = "flag / freeze / SAR review"
+dangerous_default = "no adverse finding -> approve"
+fail_open_landing = "resolved_benign, routed_away"
+harm = "flaggable transaction approved; strong deniability (odd text in a memo field)"
+
+[[domain]]
+name = "Generic agentic approval gates"
+input_channel = "change requests, access requests, expense claims"
+trigger_surface = "justification / description fields"
+accept_means = "approve"
+block_means = "deny or route to approver"
+dangerous_default = "approve, or skip the approval step"
+fail_open_landing = "resolved_benign, counted_success"
+harm = "privileged change or access granted without review"
+
+[[domain]]
+name = "Insurance / loan / claims adjudication"
+input_channel = "applications, claims, supporting documents"
+trigger_surface = "free-text sections of the application or attachments"
+accept_means = "approve"
+block_means = "deny / escalate to adjuster"
+dangerous_default = "either direction, depending on harness"
+fail_open_landing = "resolved_benign or wrongful deny"
+harm = "regulated decision steered; longer harm chain, more arguable"
+
+[[domain]]
+name = "Hiring / resume screening"
+input_channel = "resumes, cover letters, portfolios"
+trigger_surface = "document text"
+accept_means = "advance candidate / skip a screening stage"
+block_means = "reject or send to recruiter"
+dangerous_default = "either: auto-advance (skips screening) or auto-reject (discrimination)"
+fail_open_landing = "resolved_benign or wrongful reject"
+harm = "screening bypassed, or unlawful rejection; extreme deniability"
