@@ -228,15 +228,18 @@ If the fix is this cheap, why is the branch absent? Two reasons, both about
 timing and locus rather than competence.
 
 The trigger is newer than much of the code it breaks. Provider-side hard stops,
-delivered as a dedicated refusal signal, are recent. Earlier a reluctant model
-argued in prose and stopped normally, which a parser could not distinguish from
-an answer. Code written before hard stops existed branches over a stop vocabulary
-with no `refusal` value, and it cannot handle a signal that did not exist when it
-was written. We do not overclaim here: a prose refusal was always a possible
-non-verdict, and was already a fail-open path. What is new is that the
-non-verdict became near-deterministic and attacker-fireable, and that its
-delivery moved from a normal completion to a pre- or mid-generation stop that
-derails into error handling.
+delivered as a dedicated refusal signal, are recent; code written before them
+branches over a stop vocabulary with no `refusal` value and cannot handle a
+signal that did not exist when it was written. We do not claim the fail-open
+path is new; a prose refusal is one way to produce a non-verdict. What is new is
+that the model no longer gets to classify at all. Classifying untrusted content
+does not require engaging with it: a verdict is a safe act by definition, and an
+aligned model returns one, flagging objectionable content rather than passing
+it. A hard safety block denies even that, firing before the model classifies, so
+there is no parseable output and the harness falls to its default. The
+non-verdict is now near-deterministic and attacker-fireable, and it arrives as a
+pre- or mid-generation stop rather than a parseable completion, derailing into
+error handling.
 
 The locus also moved. For most people "LLM security" means prompt injection,
 where the model is the vulnerable part and the vendor owns the fix. This
